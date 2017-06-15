@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<p align="center">
+<textarea id="TextArea1" style="width:331px;height:211px"></textarea> <br/>
+<b>密钥：
+<input id="Password1" type="password"/>
+<input id="Button1" type="button" value="加密" style="width:57px " onclick="return Button1_onclick()"/>
+<input id="Button2" type="button" value="解密" style="width:55px"  onclick="return Button2_onclick()"/>
+</b>
+</p>
+<script language="javascript">
+    var msgCoded;
+    var msgEncoded;
+function CodeAndEncode(key,date)
+{
+    var codedStr="";
+    for (i in date)
+    { 
+        for (j in key)
+        {
+            //charCodeAt() 方法可返回指定位置的字符的 Unicode 编码。这个返回值是 0 - 65535 之间的整数。
+            //charAt() 方法可返回指定位置的字符
+            var keyCoded= key.charCodeAt(j);
+            var dateCoded =date.charCodeAt(i)^keyCoded;
+        }
+        //fromCharCode() 可接受一个指定的 Unicode 值，然后返回一个字符串。
+      codedStr +=String.fromCharCode(dateCoded);
+    }
+    return codedStr;
+}
+
+function Button1_onclick()
+{
+    var date=document.getElementById("TextArea1").value;
+    var key=document.getElementById("Password1").value;
+    msgCoded=CodeAndEncode(key,date);
+    TextArea1.value=msgCoded ;
+}
+function Button2_onclick()
+{
+    var date=document.getElementById("TextArea1").value;
+    var key=document.getElementById("Password1").value;
+    msgEncoded=CodeAndEncode(key,date);
+    TextArea1.value=msgEncoded ;
+}
+</script>
+</body>
+</html>

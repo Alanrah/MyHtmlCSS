@@ -1,0 +1,111 @@
+html {
+    width: 100%;
+    height: 100%;
+}
+body{
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    float: left;
+}
+.desktop{
+    margin-right: 15%;
+    margin-left: 15%;
+    margin-top: 10%;
+    width: 70%;
+    height: 60%;
+    float: left;
+}
+#up{
+    width: 100%;
+    height: 20%;
+    margin-bottom: 2%;
+    float: left;
+
+}
+#down{
+    width: 100%;
+    height: 80%;
+    float: left;
+    background-color: rgba(0,0,0,0.3);
+   /*opacity会导致背景里面的白色字体也是透明的 
+   background:#000;
+    opacity:0.2;*/
+}
+#up_left{
+    width: 19%;
+    height: 100%;
+    float: left;
+    margin-right: 1%; 
+}
+#up_middle{
+    width: 19%;
+    height: 100%;
+    float: left;
+    margin-right: 1%;
+    margin-left: 1%;
+}
+#up_right{
+    width: 58%;
+    height: 100%;
+    float: left;
+    margin-left: 1%;
+}
+
+.brown{
+    width: 100%;
+    height: 40%;
+    background-color: rgba(152,141,36,0.8);
+    float: left;
+}
+.green{
+    width: 100%;
+    height: 40%;
+    background-color:rgba(44,141,36,0.8) ;
+    float: left;
+}
+.purple{
+    width: 100%;
+    height: 40%;
+    background-color: rgba(163,45,188,0.8);
+    float: left;
+}
+.tran{
+    width: 100%;
+    height: 60%;
+    background-color: rgba(0,0,0,0.3);
+    z-index:10;
+    float: left;
+}
+span{
+     background-color: transparent;position:relative; color:#FFF;font-size: 16px;text-align: center;opacity:1;z-index:0;
+}
+#text{
+    width: 100%;
+    height: 60%;
+    border:0px;
+    text-align: left;
+    word-wrap: break-word;
+    float: left;
+}
+/* Supersized - Fullscreen Slideshow jQuery Plugin  Version : 3.2.7 */
+#weather{
+    width: 100%;
+    height: 40%;
+    color: #FFF;
+    text-align: center;
+    float: left;
+}
+img{border:none}
+#supersized-loader{position:absolute;z-index:0;text-indent:-999em;}
+#supersized{display:block;position:fixed;left:0;top:0;overflow:hidden;z-index:-999;height:100%;width:100%}
+#supersized img{width:auto;height:auto;position:relative;display:none;outline:0;border:none}
+#supersized.speed img{-ms-interpolation-mode:nearest-neighbor;image-rendering:-moz-crisp-edges}
+#supersized.quality img{-ms-interpolation-mode:bicubic;image-rendering:optimizeQuality}
+#supersized li{display:block;list-style:none;z-index:-30;position:fixed;overflow:hidden;top:0;left:0;width:100%;height:100%;background:#111}
+#supersized a{width:100%;height:100%;display:block}
+#supersized li.prevslide{z-index:-20}
+#supersized li.activeslide{z-index:-10}
+#supersized li.activeslide img,#supersized li.prevslide img{display:inline}
+#supersized img{max-width:none!important}

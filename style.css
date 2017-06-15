@@ -1,0 +1,21 @@
+body { 
+  font-size: 16px; 
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: black;
+  color: white;
+ }
+ #num {
+  margin-left: 1em;
+ }
+ p {
+  margin: 10px;
+  line-height: 200%;
+  position: absolute;
+  left: 0;
+  top: 0;
+ }
+ canvas {
+  display: inline-block;
+ }  
