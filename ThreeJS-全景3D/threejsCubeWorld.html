@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>three.js webgl - draggable cubes</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                font-family: Monospace;
+                background-color: #f0f0f0;
+                margin: 0px;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+    <canvas id="container" width="1000px" height="1000px"></canvas>
+    <div id="container" width="1000px" height="1000px"></div>
+        <script src="three.js"></script>
+        <script src="jquery-1.9.0.js"></script>
+        <script src="tween.min.js"></script>
+        <script src="TrackballControls.js"></script>
+        <!-- <script src="script/renderers/CSS3DRenderer.js"></script> -->
+        <script src="stats.js"></script>
+            
+            
+        <script>
+    //三要素，相机，场景，渲染器
+    var camera, scene, renderer;
+    //正投影的相机和场景
+    var cameraOrtho, sceneOrtho;
+    //用于协助鼠标拾取
+    var raycaster
+    //全景标记点数组
+    var sprites = [];
+    //用于查询全景标记点的数组
+    var clickableObjects = [];
+    //判断用户有没有操作的参数
+    var isUserInteracting = false;
+    //屏幕焦点的经纬度
+    var lon =0,lat=0;
+    //临时经纬度
+    var onPointerDownLon = 0, onPointerDownLat =0;
+    //临时xy
+    var onPointerDownPointerX = 0, onPointerDownPointerY = 0;
+    //鼠标2D坐标
+    var mouse = new THREE.Vector2();
+    //焦距
+    var fov = 75;
+    //球半径
+    var pRadius = 1000;
+
+    //初始化各种参数
+    init();
+    //初始化动画
+    animate();
+
+    function init() {
+
+        //容器，用于融合集合体和
+        var container, mesh;
+
+        //获取容器
+        container = document.getElementById( 'container' );
+
+        //初始化相机(透视投影)模仿人眼所看到的方式。它是用于渲染3D场景的最常用的投影模式。
+        camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 1, 1100 );
+        camera.target = new THREE.Vector3( 0, 0, 0 );
+
+        //初始化相机(正投影)渲染图像中物体的大小与摄像机的距离无关，保持不变。这可以用于渲染2D场景和UI元素等等。
+        cameraOrtho = new THREE.OrthographicCamera( - window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, - window.innerHeight / 2, 1, 10 );
+        cameraOrtho.position.z = 10;
+
+        //初始化场景（普通和正投影）
+        scene = new THREE.Scene();
+        sceneOrtho = new THREE.Scene();
+
+        //协助鼠标拾取要素
+        raycaster = new THREE.Raycaster();
+
+        //创建网格，融合几何体和材料，并添加到场景中
+        //创建圆形几何体（第一个参数是半径，必须大于1小于某个数，第二三个参数为经纬度切片数，值太小全景图会变形，值越大越精细，但是会影响性能）
+        mesh = new THREE.Mesh( new THREE.SphereGeometry( 2, 60, 40 ),
+            new THREE.MeshBasicMaterial(
+                { map: THREE.ImageUtils.loadTexture( 'textures/pano-1.jpg' ) }
+            ) );
+        mesh.scale.x = -1;
+        scene.add( mesh );
+
+        //创建渲染器并添加到场景中
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.autoClear = false;
+        container.appendChild( renderer.domElement );
+
+        //初始化全景标记
+        initLable();
+
+
+        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+        document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+        document.addEventListener( 'click', onDocumentMouseClick, false);
+        window.addEventListener( 'resize', onWindowResize, false );
+
+    }
+
+    /*
+     * 鼠标按下事件
+     * */
+    function onDocumentMouseDown( event ) {
+
+        event.preventDefault();
+
+        isUserInteracting = true;
+
+        onPointerDownPointerX = event.clientX;
+        onPointerDownPointerY = event.clientY;
+
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+    }
+
+    /*
+     * 鼠标移动事件
+     * */
+    function onDocumentMouseMove( event ) {
+        if ( isUserInteracting ) {
+            lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+            lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+        }
+    }
+
+    /*
+     * 鼠标弹起事件
+     * */
+    function onDocumentMouseUp( event ) {
+        isUserInteracting = false;
+    }
+
+    /*
+     * 单机鼠标查询标记点
+     * */
+    function onDocumentMouseClick(event){
+        mouse.x = ( event.clientX/ window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        raycaster.setFromCamera( mouse, cameraOrtho );
+        var intersects = raycaster.intersectObjects( clickableObjects );
+        intersects.forEach(function(element){
+            alert("Intersection: " + element.object.name);
+        });
+    }
+
+    /*
+     * 窗体变化事件
+     * */
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.projectionMatrix.makePerspective( fov, camera.aspect, 1, 1100 );
+        camera.updateProjectionMatrix();
+        cameraOrtho.left = - window.innerWidth  / 2;
+        cameraOrtho.right =  window.innerWidth / 2;
+        cameraOrtho.top = window.innerHeight / 2;
+        cameraOrtho.bottom = - window.innerHeight / 2;
+        cameraOrtho.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    //初始化全景标记函数
+    function initLable() {
+
+        var p1={lon:158,lat:7};
+        var p2={lon:120,lat:13};
+        var p3={lon:-120,lat:10};
+        var p4={lon:-180,lat:2};
+        var p5={lon:-150,lat:5};
+        var p6={lon:-20,lat:20};
+        var p7={lon:50,lat:10};
+
+        sprites.push(createSprite(p1,"textures/school.png","化学实验室"));
+        sprites.push(createSprite(p2,"textures/school.png","物理实验室"));
+        sprites.push(createSprite(p3,"textures/food.png","餐厅"));
+        sprites.push(createSprite(p4,"textures/home.png","健身房"));
+        sprites.push(createSprite(p5,"textures/home.png","公寓"));
+        sprites.push(createSprite(p6,"textures/shop.png","图书馆"));
+        sprites.push(createSprite(p7,"textures/hospital.png","医务室"));
+
+    }
+
+    /*
+     * 创建标注
+     * position：lable标签的位置（lon，lat）
+     * **/
+    function createSprite(position,url,name){
+        var textureLoader = new THREE.TextureLoader();
+        var ballMaterial = new THREE.SpriteMaterial({
+            map: textureLoader.load( url )//( 'textures/sprite1.png' )
+        });
+        var sp1={
+            pos:position,
+            name:name,
+            sprite:new THREE.Sprite(ballMaterial)
+        };
+        sp1.sprite.scale.set(32, 32, 1.0);
+        sp1.sprite.position.set(0, 0, 0);
+        sp1.sprite.name=name;
+        sceneOrtho.add(sp1.sprite);
+        clickableObjects.push(sp1.sprite);
+        return sp1;
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        render();
+    }
+
+    function render() {
+
+        /*
+         * 1、POI点通过编辑工具进行定位（lon、lat）
+         * 2、将全景视图按照经度分成四份各90度（0-90、90-180、180-270、270-360）
+         * 3、在渲染线程中根据当前相机的经度范围查询当前需要绘制的POI：如何根据屏幕坐标计算经纬度
+         *    设当前相机中心经度为lonn ，相机广度为num度，当前经度范围为lonn-num----------lonn+num
+         * 4、将POI的经纬度位置转换为屏幕坐标进行POI绘制
+         *
+         * */
+        lat = Math.max( - 85, Math.min( 85, lat ) );//纬度限制在-85---85度之间
+        phi = THREE.Math.degToRad( 90 - lat );
+        theta = THREE.Math.degToRad( lon );
+
+        camera.target.x = pRadius * Math.sin( phi ) * Math.cos( theta );
+        camera.target.y = pRadius * Math.cos( phi );
+        camera.target.z = pRadius * Math.sin( phi ) * Math.sin( theta );
+        camera.lookAt( camera.target );
+
+        if(typeof (sprites)!="undefined") {
+            for (var i = 0; i < sprites.length; i++) {
+                var wp = geoPosition2World(sprites[i].pos.lon,sprites[i].pos.lat);
+                var sp = worldPostion2Screen(wp, camera);
+                var test=wp.clone();
+                test.project(camera);
+                //判断是否在视野范围内，在旋转球体的过程中有可能会转出我们的视野，把这些图标隐藏起来
+                if (test.x > -1 && test.x < 1 && test.y > -1 && test.y < 1 && test.z > -1 && test.z < 1) {
+                    sprites[i].sprite.scale.set(32, 32,32);
+                    sprites[i].sprite.position.set(sp.x, sp.y, 1);
+                }
+                else {
+                    sprites[i].sprite.scale.set(1.0,1.0,1.0);
+                    sprites[i].sprite.position.set(0,0,0);
+                }
+            }
+        }
+
+        renderer.clear();
+        renderer.render( scene, camera );
+        renderer.clearDepth();
+        renderer.render( sceneOrtho, cameraOrtho );
+    }
+
+    /*
+     * 经纬度坐标转换为世界坐标
+     * lon：经度
+     * lat：纬度
+     * */
+    function geoPosition2World(lon,lat){
+        lat = Math.max( - 85, Math.min( 85, lat ) );
+        var phi = THREE.Math.degToRad( 90 - lat);
+        var theta = THREE.Math.degToRad( lon );
+
+        var result={
+            x:pRadius * Math.sin( phi ) * Math.cos( theta ),
+            y:pRadius * Math.cos( phi ),
+            z:pRadius * Math.sin( phi ) * Math.sin( theta )
+        }
+        return new THREE.Vector3(result.x,result.y,result.z);
+    }
+
+    /*
+     * 世界坐标转换为屏幕坐标
+     * */
+    function worldPostion2Screen(world_vector,camera){
+        var vector=world_vector.clone();
+        vector.project(camera);
+        var result = {
+            //SPriter以屏幕中心为原点
+            x: Math.round((vector.x + 1 ) * window.innerWidth  / 2 -window.innerWidth  / 2),
+            y: Math.round(window.innerHeight  / 2-(-vector.y + 1 ) * window.innerHeight  / 2 ),
+            //以屏幕左上角为原点
+            //x: Math.round((vector.x + 1 ) * window.innerWidth  / 2),
+            // y: Math.round(-(-vector.y + 1 ) * window.innerHeight  / 2 ),
+            z:0
+        };
+        return new THREE.Vector3(result.x,result.y,result.z);
+    }
+        </script>
+    </body>
+</html>
