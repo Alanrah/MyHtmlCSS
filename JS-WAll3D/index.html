@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>立方体上放可动的json文件和echarts上的图表</title>
+  <meta charset="utf-8"/>
+</head>
+<body onload="init()">
+<script src="guide/lib/core/ht.js"></script>
+<script src="guide/lib/plugin/ht-modeling.js"></script>
+<script src="guide/lib/plugin/ht-edgetype.js"></script>
+<script src="echarts.min.js"></script>
+<script type="text/javascript">
+function init(){
+  option = {
+    // animation: false,
+    title: {
+      text: '数据显示'
+    },
+    color: ['#3398DB'],
+    tooltip : {
+      trigger: 'axis',
+      axisPointer : {// 坐标轴指示器，坐标轴触发有效
+        type : 'shadow'// 默认为直线，可选为：'line' | 'shadow'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis : [
+      {
+      type : 'category',
+      data : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      axisTick: {
+        alignWithLabel: true
+      }
+      }
+    ],
+    yAxis : [
+      {
+        type : 'value'
+      }
+    ],
+    series : [
+      {
+        name:'hello',
+        type:'bar',
+        barWidth: '60%',
+        data:[10, 52, 200, 334, 390, 330, 220]
+      }
+    ]
+  };
+  dataModel = new ht.DataModel();
+  g3d = new ht.graph3d.Graph3dView(dataModel);
+
+  g3d.addToDOM();
+  g3d.setEye([625, 386, 722]);
+  g3d.setCenter([0, 150, 0]);
+  g3d.setGridVisible(true);
+
+  var box = createBox();
+  createPump(box);
+
+  ht.Default.setImage('echart', charts(option));//ht.Default.drawImage函数生成新的图实际上就是在canvas上画图，所以我们只要把我们已经画好的canvas传到ht.Default.setImage就可以生成图片了
+  ht.Default.setImage('pump', pumpGV.getCanvas());
+}
+
+function charts(option){
+  var info = {
+    canvas: document.createElement('canvas')
+  };
+  info.canvas.dynamic = true;//设置info.canvas为动态
+
+  info.chart = echarts.init(info.canvas);
+  info.chart.setOption(option);
+
+  return info.canvas;
+}
+
+function createBox(){
+  var box = new ht.CSGBox();
+  dataModel.add(box);
+  box.s({
+    'front.toggleable': true,
+    'left.toggleable': true,//CSGBox左面是否允许双击面进行展开和关闭的操作
+    'right.toggleable': true,
+    'top.toggleable': true,
+    'bottom.toggleable': true,
+    'back.toggleable': true,
+
+    'front.axis': 'bottom',
+    'left.axis': 'bottom',//CSGBox左面展开和关闭操作的旋转轴
+    'right.axis': 'bottom',
+    'back.axis': 'bottom',
+    'top.axis': 'top',
+    'bottom.axis': 'bottom',
+
+    'front.image': 'pump',
+    'right.image': 'echart',
+
+    'right.reverse.flip': true,//右面的反面是否显示正面的内容
+    'front.reverse.flip': true,
+
+    'note': '双击任意一个墙面可以折叠和展开',
+    'note2': '任意一个墙面都可以放任何东西',
+
+    'front.transparent': true,
+    'right.transparent': true
+  });
+
+  box.s3([400, 400, 400]);
+  box.p3([0, 200, 0]);
+  return box;
+}
+
+function createPump(box){
+  pumpDM = new ht.DataModel();
+  pumpGV = new ht.graph.GraphView(pumpDM);
+
+  ht.Default.xhrLoad('pump.json', function(text){
+    const json = ht.Default.parse(text);
+    pumpDM.deserialize(json);//反序列化
+    var currentRotation = 0;
+    var lastTime = new Date().getTime();
+
+    setInterval(function(){
+      var time = new Date().getTime();
+      var deltaTime = time - lastTime;
+      currentRotation += deltaTime * Math.PI / 180 * 0.3;//当前旋转角度
+      lastTime = time;
+
+      pumpDM.getDataByTag('fan1').setRotation(currentRotation);
+      pumpDM.getDataByTag('fan2').setRotation(currentRotation);
+      box.iv();
+      // g3d.iv();
+      pumpGV.validateImpl();
+    }, 10);
+
+    setTimeout(function(){
+      pumpGV.fitContent(true)
+    },500)
+  }, 10);
+  //这个时候我不能把pumpGV和g3d都加到底层div上，并且我的意图是把pumpGV加到g3d中的CSGBox中的一面上，所以为了让pumpGV显示出来 必须设置pumpGV的宽高，而这个宽高必须比我json画出来的图占的面积要大，不然显示不完整 如果想看这个宽高对显示的影响，可以自己改改看来玩玩
+  pumpGV.getWidth = function() { return 600;}
+  pumpGV.getHeight = function(){ return 600;}
+  pumpGV.getCanvas().dynamic = true;//设置这个是为了让canvas能动态显示
+}
+</script>
+</body>
+</html>
