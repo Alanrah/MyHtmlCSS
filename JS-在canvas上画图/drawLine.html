@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="utf-8"/>
+  <script type="text/javascript" src="script.js"></script>
+  <link rel="stylesheet" type="text/css" href="CSS.css">
+
+</head>
+<body>
+<canvas id="canvas" width="600" height="400"> </canvas>
+<br><label>画笔颜色：</label>
+<input type="button" id="red" onclick="linecolor='red'">
+<input type="button" id="blue" onclick="linecolor='blue'">
+<input type="button" id="yellow" onclick="linecolor='yellow'">
+<input type="button" id="white" onclick="linecolor='white'">
+<input type="button" id="zi" onclick="linecolor='#8B026B'"> 
+<label>画笔宽度：</label>
+<select id="sel"> 
+  <option value="4">4</option>
+  <option value="8">8</option>
+  <option value="16">16</option>
+  <option value="30">30</option>
+</select>
+<input type="button" value="生成图片" onclick="change()"><br>
+<img id="image" src="" width="500px" height="200px">
+</body>
+</html>
