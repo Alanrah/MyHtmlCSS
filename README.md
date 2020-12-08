@@ -1,5 +1,4 @@
 # MyHtmlCSS
-平时想到的看到的一些html和css的有用样式都会放在这里
 
 swiper.js可以产生2D和3D的各种滑动窗口的操作
-jquery和supersized可以静态切换北京图片，轮循播放背景图片
+jquery和supersized可以静态切换背景图片，轮循播放背景图片
